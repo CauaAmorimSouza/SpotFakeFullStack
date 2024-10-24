@@ -1,47 +1,24 @@
-// app/index.jsx
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+// app/Index.jsx
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 
-const LoginScreen = () => {
+const InicialScreen = () => {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-
-  const handleLogin = () => {
-    // Lógica para autenticação
-    console.log('Login realizado com sucesso');
-  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>BEM-VINDO!!!</Text>
-      <View style={styles.formContainer}>
-        <Text style={styles.formTitle}>LOGIN</Text>
-        <Text style={styles.label}>E-mail:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Digite seu e-mail"
-          placeholderTextColor="#aaa"
-          value={email}
-          onChangeText={setEmail}
+      <View style={styles.logoContainer}>
+        <Text style={styles.title}>SNAPTABLOOK</Text>
+        {/* Logo aumentada */}
+        <Image 
+          source={require('./Img/SNAPTABLOOK.png')} 
+          style={styles.image} 
         />
-        <Text style={styles.label}>Senha:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Digite sua senha"
-          placeholderTextColor="#aaa"
-          secureTextEntry
-          value={senha}
-          onChangeText={setSenha}
-        />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>ENTRAR</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/cadastro')}>
-          <Text style={styles.cadastrarText}>Cadastre-se</Text>
-        </TouchableOpacity>
       </View>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/Login')}>
+        <Text style={styles.buttonText}>LOGIN</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -53,57 +30,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
-    color: '#00FFEA',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  formContainer: {
-    width: '80%',
-    backgroundColor: '#333',
-    padding: 20,
-    borderRadius: 10,
+  image: {
+    width: 200, // Aumentando a largura da imagem
+    height: 200, // Aumentando a altura da imagem
+    marginBottom: 20,
     borderColor: '#00FFEA',
     borderWidth: 2,
+    borderRadius: 100, // Ajustando para a nova largura
   },
-  formTitle: {
+  title: {
     color: '#00FFEA',
-    fontSize: 18,
+    fontSize: 28, 
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
-  },
-  label: {
-    color: '#fff',
-    marginBottom: 5,
-  },
-  input: {
-    backgroundColor: '#000',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#555',
+    marginBottom: 60, 
   },
   button: {
     backgroundColor: '#00FFEA',
     paddingVertical: 12,
+    paddingHorizontal: 50,
     borderRadius: 5,
     alignItems: 'center',
+    marginTop: 20,
   },
   buttonText: {
     color: '#000',
     fontWeight: 'bold',
     fontSize: 16,
   },
-  cadastrarText: {
-    color: '#00FFEA',
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 10,
-  },
 });
 
-export default LoginScreen;
+export default InicialScreen;

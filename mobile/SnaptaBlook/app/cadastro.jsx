@@ -1,7 +1,38 @@
 // app/cadastro.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+
+const registrarUsuario = async (nome, sobrenome, email, senha, dataNascimento) => {
+  if (!nome || !sobrenome || !email || !senha || !dataNascimento) {
+    console.log('Todos os campos devem ser preenchidos');
+    return;
+  }
+
+  const resposta = await fetch('http://localhost:8000/registro', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': '*/*'
+    },
+    body: JSON.stringify({
+      "nome": nome,
+      "sobrenome": sobrenome,
+      "email": email,
+      "senha": senha,
+      "dataNascimento": dataNascimento
+    }),
+  });
+
+  if (!resposta) {
+    console.log('Erro na requisição');
+  } else if (resposta.status === 200) {
+    console.log('Usuário criado com sucesso');
+    // Navegação será tratada pelo Link
+  } else {
+    console.log('Ocorreu um erro');
+  }
+};
 
 const CadastroScreen = () => {
   const router = useRouter();
@@ -10,17 +41,15 @@ const CadastroScreen = () => {
   const [dataNascimento, setDataNascimento] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
 
-  const handleCadastro = () => {
-    // Lógica para cadastro
-    console.log('Cadastro realizado com sucesso');
-    // Navegar para a tela de login após o cadastro
-    router.push('/');
-  };
+  console.log(nome, sobrenome, email, senha, dataNascimento)
 
   return (
+    
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => router.push('/Login')} style={styles.backButton}>
+        <Text style={styles.backButtonText}>Voltar para Login</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>CADASTRE-SE</Text>
       <View style={styles.formContainer}>
         <Text style={styles.formTitle}>CADASTRO</Text>
@@ -65,16 +94,7 @@ const CadastroScreen = () => {
           value={senha}
           onChangeText={setSenha}
         />
-        <Text style={styles.label}>Confirmar Senha:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Confirme sua senha"
-          placeholderTextColor="#aaa"
-          secureTextEntry
-          value={confirmarSenha}
-          onChangeText={setConfirmarSenha}
-        />
-        <TouchableOpacity style={styles.button} onPress={handleCadastro}>
+        <TouchableOpacity style={styles.button} onPress={()=> registrarUsuario(nome, sobrenome, email, senha, dataNascimento)}>
           <Text style={styles.buttonText}>CADASTRAR</Text>
         </TouchableOpacity>
       </View>
@@ -88,6 +108,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+  },
+  backButtonText: {
+    color: '#00FFEA',
+    fontSize: 14,
   },
   title: {
     color: '#00FFEA',
