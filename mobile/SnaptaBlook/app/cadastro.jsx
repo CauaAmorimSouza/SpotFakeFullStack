@@ -1,36 +1,39 @@
-// app/cadastro.jsx
+// app/Cadastro.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 
-const registrarUsuario = async (nome, sobrenome, email, senha, dataNascimento) => {
+const registrarUsuario = async (nome, sobrenome, email, senha, dataNascimento, router) => {
   if (!nome || !sobrenome || !email || !senha || !dataNascimento) {
-    console.log('Todos os campos devem ser preenchidos');
+    Alert.alert('Erro', 'Todos os campos devem estar preenchidos');
     return;
   }
 
-  const resposta = await fetch('http://localhost:8000/registro', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': '*/*'
-    },
-    body: JSON.stringify({
-      "nome": nome,
-      "sobrenome": sobrenome,
-      "email": email,
-      "senha": senha,
-      "dataNascimento": dataNascimento
-    }),
-  });
+  try {
+    const resposta = await fetch('http://localhost:8000/registro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+      },
+      body: JSON.stringify({
+        nome,
+        sobrenome,
+        email,
+        senha,
+        dataNascimento,
+      }),
+    });
 
-  if (!resposta) {
-    console.log('Erro na requisição');
-  } else if (resposta.status === 200) {
-    console.log('Usuário criado com sucesso');
-    // Navegação será tratada pelo Link
-  } else {
-    console.log('Ocorreu um erro');
+    if (resposta.status === 200) {
+      Alert.alert('Sucesso', 'Usuário criado com sucesso');
+      router.push('/Login'); // Navegar para a tela de login após sucesso
+    } else {
+      Alert.alert('Erro', 'Ocorreu um erro ao criar o usuário');
+    }
+  } catch (error) {
+    Alert.alert('Erro', 'Falha na comunicação com o servidor');
+    console.error('Erro na requisição:', error);
   }
 };
 
@@ -42,10 +45,7 @@ const CadastroScreen = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
-  console.log(nome, sobrenome, email, senha, dataNascimento)
-
   return (
-    
     <View style={styles.container}>
       <TouchableOpacity onPress={() => router.push('/Login')} style={styles.backButton}>
         <Text style={styles.backButtonText}>Voltar para Login</Text>
@@ -94,9 +94,12 @@ const CadastroScreen = () => {
           value={senha}
           onChangeText={setSenha}
         />
-        <TouchableOpacity style={styles.button} onPress={()=> registrarUsuario(nome, sobrenome, email, senha, dataNascimento)}>
+        <Pressable
+          style={styles.button}
+          onPress={() => registrarUsuario(nome, sobrenome, email, senha, dataNascimento, router)}
+        >
           <Text style={styles.buttonText}>CADASTRAR</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
