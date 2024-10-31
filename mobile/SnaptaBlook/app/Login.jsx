@@ -5,12 +5,31 @@ import { useRouter } from 'expo-router';
 
 const LoginScreen = () => {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
 
-  const handleLogin = () => {
-    // Lógica para autenticação
-    console.log('Login realizado com sucesso');
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      const resposta = await fetch("http://localhost:8000/autenticacao/Login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "*/*",
+        },
+        body: JSON.stringify({
+          "email": email,
+          "senha": senha,
+        }),
+      });
+
+      const mensagem = await resposta.text();
+      alert(mensagem);
+
+    } catch (error) {
+      console.error("Error during login:", error);
+      alert("Erro ao logar usuário");
+    }
   };
 
   return (
