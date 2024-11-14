@@ -3,47 +3,44 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 
-const registrarUsuario = async (nome, sobrenome, email, senha, dataNascimento, router) => {
-  if (!nome || !sobrenome || !email || !senha || !dataNascimento) {
-    Alert.alert('Erro', 'Todos os campos devem estar preenchidos');
-    return;
-  }
-
-  try {
-    const resposta = await fetch('http://localhost:8000/registro', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': '*/*',
-      },
-      body: JSON.stringify({
-        nome,
-        sobrenome,
-        email,
-        senha,
-        dataNascimento,
-      }),
-    });
-
-    if (resposta.status === 200) {
-      Alert.alert('Sucesso', 'Usuário criado com sucesso');
-      router.push('/Login'); // Navegar para a tela de login após sucesso
-    } else {
-      Alert.alert('Erro', 'Ocorreu um erro ao criar o usuário');
-    }
-  } catch (error) {
-    Alert.alert('Erro', 'Falha na comunicação com o servidor');
-    console.error('Erro na requisição:', error);
-  }
-};
-
 const CadastroScreen = () => {
   const router = useRouter();
+
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+
+  const registrarUsuario = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/autenticacao/registro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "*/*",
+        },
+        body: JSON.stringify({
+          "nome": nome,
+          "sobreNome": sobrenome,
+          "email": email,
+          "senha": senha,
+          "dataNascimento": dataNascimento,
+        }),
+      });
+
+      const message = await response.text();
+      alert(message);
+
+      if (message === "Usuario registrado com sucesso!") {
+        router.push('/Login');
+      }
+
+    } catch (error) {
+      console.error("Error during signup:", error);
+      alert("Erro ao criar usuário");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -96,7 +93,7 @@ const CadastroScreen = () => {
         />
         <Pressable
           style={styles.button}
-          onPress={() => registrarUsuario(nome, sobrenome, email, senha, dataNascimento, router)}
+          onPress={() => registrarUsuario (nome, sobrenome, dataNascimento, senha, email)}
         >
           <Text style={styles.buttonText}>CADASTRAR</Text>
         </Pressable>

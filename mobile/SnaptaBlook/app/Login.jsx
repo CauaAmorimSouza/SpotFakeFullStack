@@ -1,7 +1,7 @@
 // app/Login.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Pressablem, Scrollview } from 'react-native';
+import { Link, router, useRouter } from 'expo-router';
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -11,7 +11,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const resposta = await fetch("http://localhost:8000/autenticacao/Login", {
+      const response = await fetch("http://localhost:8000/autenticacao/Login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,8 +23,16 @@ const LoginScreen = () => {
         }),
       });
 
-      const mensagem = await resposta.text();
-      alert(mensagem);
+      const message = await response.text();
+      alert(message);
+      
+      // Verificar se o a mensagem retornada é a de um admin logado
+      if (message === "Usuário Logado com Sucesso!") {
+        router.push('/Inicio')
+      }
+      else if (message === "Admin logado com sucesso!") {
+        router.push('/AdmHome')
+      }
 
     } catch (error) {
       console.error("Error during login:", error);
@@ -57,7 +65,7 @@ const LoginScreen = () => {
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>ENTRAR</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/Cadastro')}>
+        <TouchableOpacity onPress={() => router.push('/cadastro')}>
           <Text style={styles.cadastrarText}>Cadastre-se</Text>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Biblioteca para ícones (Instale com 'expo install @expo/vector-icons')
+import { router } from 'expo-router';
 
 const HomeScreen = () => {
   return (
@@ -45,8 +47,14 @@ const HomeScreen = () => {
             <Text style={styles.menuIcon}>≡</Text>
             <Text style={styles.musicText}>{musica}</Text>
           </TouchableOpacity>
+          
         ))}
       </ScrollView>
+      
+    {/* Botão circular com ícone de pessoa */}
+    <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/Usuario')}>
+        <Ionicons name="person-circle" size={50} color="#00FFEA" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -119,6 +127,14 @@ const styles = StyleSheet.create({
   musicText: {
     color: '#fff',
     fontSize: 16,
+  },
+  profileButton: {
+    position: 'absolute',
+    top: 30,
+    right: 20,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 25,
+    padding: 5,
   },
 });
 
