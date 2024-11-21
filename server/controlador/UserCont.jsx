@@ -1,64 +1,69 @@
 import bcryptjs from "bcryptjs";
-import jsonwebtoken from "jsonwebtoken";
 import { User } from '../db.js'
 
-const registro = async (req, res) => {
-    const { nome, sobreNome, email, senha, dataNascimento } = req.body
-    if (!nome || !sobreNome || !email || !senha || !dataNascimento) {
+const GetUsers = async (req, res) => {
+    const allUsers = await User.findAll()
+    res.send(allUsers)
+}
+
+const GetUser = async (req, res) => {
+    const { email } = req.body
+
+    if (!email) {
+        res.send('Insira o email do usuário na qual você gostaria de verificar.');
+        return
+    }
+    const user = await User.findOne({ where: { email: email } })
+    res.send(user)
+}
+
+const DeleteUser = async (req, res) => {
+    const { email } = req.body
+
+    if (!email) {
+        res.send('Insira o email do usuário na qual você gostaria de deletar.');
+        return
+    }
+
+    const user = await User.destroy({ where: { email: email } })
+    if (user) {
+        res.send("Usuário deletado");
+    } else {
+        res.send("Usuário não encontrado.");
+    }
+}
+
+const ChangePass = async (req, res) => {
+    const { id } = req.params;
+    const { senhaAtual, novaSenha } = req.body;
+
+    if (!senhaAtual || !novaSenha) {
         res.send('todos os campos devem ser preenchidos');
         return
     }
 
-    const userExiste = await User.findOne({ where: { email: email } })
-    console.log(userExiste)
-    if (userExiste) {
-        res.send('usuario já existe.')
-        return
-    }
-    const senhaCriptografada = bcryptjs.hashSync(senha, 10)
-    const Registrar = await User.create({ nome, sobreNome, email, senha: senhaCriptografada, dataNascimento })
+    try {
 
-    res.send('Usuario registrado com sucesso!')
+        const user = await User.findByPk(id);
+        if (!user) {
+            res.send("Usuário não encontrado.")
+            return
+        }
+
+        const senhaValida = bcryptjs.compareSync(senhaAtual, user.senha)
+        if (!senhaValida) {
+            res.send('senha invalida')
+            return
+        }
+
+        const senhaCriptografada = bcryptjs.hashSync(novaSenha, 10);
+        user.senha = senhaCriptografada;
+        await user.save();
+        res.send('Senha atualizada com sucesso.')
+    } catch (error) {
+        console.error(error)
+    }
 }
 
-const login = async (req, res) => {
-    const { email, senha } = req.body
 
-    if (!email || !senha) {
-        res.send('todos os campos devem ser preenchidos');
-        return
-    }
-
-    const userExiste = await User.findOne({ where: { email: email } })
-    console.log(!userExiste)
-    if (!userExiste) {
-        res.send('este usuario não existe.')
-        return
-    }
-
-    const senhaValida = bcryptjs.compareSync(senha, userExiste.senha)
-    if (!senhaValida) {
-        res.send('senha invalida')
-        return
-    }
-
-    const token = jsonwebtoken.sign(
-        {
-            "nome_completo": `${userExiste.nome} ${userExiste.sobreNome}`,
-            "email": userExiste.email,
-            "status": userExiste.status
-        },
-        "chavecriptografiajwt",
-        { expiresIn: 1000 * 60 * 5 }
-    )
-
-    if(userExiste.nome === "admin" && userExiste.email === "admin"){
-        res.send('Admin logado com sucesso!')
-    }
-    else{
-        res.send('Usuario logado com sucesso!')
-    }
-    
-}
-
-export { registro, login }
+export { GetUsers, GetUser, DeleteUser, ChangePass }

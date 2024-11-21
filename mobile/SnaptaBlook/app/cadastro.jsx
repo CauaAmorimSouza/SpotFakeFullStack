@@ -22,7 +22,7 @@ const CadastroScreen = () => {
         },
         body: JSON.stringify({
           "nome": nome,
-          "sobreNome": sobrenome,
+          "sobrenome": sobrenome,
           "email": email,
           "senha": senha,
           "dataNascimento": dataNascimento,
@@ -166,3 +166,4 @@ const styles = StyleSheet.create({
 });
 
 export default CadastroScreen;
+

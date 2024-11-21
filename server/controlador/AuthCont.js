@@ -3,8 +3,8 @@ import jsonwebtoken from "jsonwebtoken";
 import { User } from '../db.js'
 
 const registro = async (req, res) => {
-    const { nome, sobreNome, email, senha, dataNascimento } = req.body
-    if (!nome || !sobreNome || !email || !senha || !dataNascimento) {
+    const { nome, sobrenome, email, senha, dataNascimento } = req.body
+    if (!nome || !sobrenome || !email || !senha || !dataNascimento) { console.log("TEste1")
         res.send('todos os campos devem ser preenchidos');
         return
     }
@@ -16,7 +16,7 @@ const registro = async (req, res) => {
         return
     }
     const senhaCriptografada = bcryptjs.hashSync(senha, 10)
-    const Registrar = await User.create({ nome, sobreNome, email, senha: senhaCriptografada, dataNascimento })
+    const Registrar = await User.create({ nome, sobrenome, email, senha: senhaCriptografada, dataNasc: dataNascimento })
 
     res.send('Usuario registrado com sucesso!')
 }
@@ -44,7 +44,7 @@ const login = async (req, res) => {
 
     const token = jsonwebtoken.sign(
         {
-            "nome_completo": `${userExiste.nome} ${userExiste.sobreNome}`,
+            "nome_completo": `${userExiste.nome} ${userExiste.sobrenome}`,
             "email": userExiste.email,
             "status": userExiste.status
         },
