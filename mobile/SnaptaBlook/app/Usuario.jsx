@@ -2,45 +2,47 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 
 const UsuarioScreen = () => {
-  const [imageUri, setImageUri] = useState('https://via.placeholder.com/100'); // Defina a URI inicial com a imagem padrão ou a atual do usuário
-  const [newPassword, setNewPassword] = useState('');
   const router = useRouter();
 
-  // Função para selecionar nova imagem de perfil
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  // Estados para senha atual e nova senha
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
 
-    if (permissionResult.granted === false) {
-      Alert.alert('Permissão negada', 'Você precisa dar permissão para acessar a galeria');
+  const alterarSenha = async () => {
+    if (!senhaAtual || !novaSenha) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1], // Mantém a proporção quadrada
-      quality: 1,
-    });
+    try {
+      const response = await fetch('http://localhost:8000/autenticacao/Login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          senhaAtual,
+          novaSenha,
+        }),
+      });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri); // Atualiza a imagem
-      // Aqui você pode enviar a imagem para o servidor, se necessário
-      // Exemplo de envio: enviarImagemParaServidor(result.assets[0].uri);
-    }
-  };
+      const data = await response.json(); // Aguarda a resposta do servidor
 
-  // Função para atualizar a senha do usuário
-  const changePassword = () => {
-    if (newPassword.length < 6) {
-      Alert.alert('Erro', 'A nova senha deve ter pelo menos 6 caracteres');
-      return;
+      console.log('Resposta do servidor:', data);
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Senha alterada com sucesso.');
+        setSenhaAtual('');
+        setNovaSenha('');
+      } else {
+        Alert.alert('Erro', data.message || 'Não foi possível alterar a senha.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
     }
-    // Aqui você pode enviar a nova senha para o servidor
-    // Exemplo de envio: enviarSenhaParaServidor(newPassword);
-    Alert.alert('Senha atualizada', 'Sua senha foi alterada com sucesso');
   };
 
   return (
@@ -50,15 +52,10 @@ const UsuarioScreen = () => {
       {/* Exemplo de foto de perfil */}
       <View style={styles.profileImageWrapper}>
         <Image 
-          source={{ uri: imageUri }} // Usa a URI da imagem selecionada
+          source={{ uri: 'https://via.placeholder.com/100' }} // Substitua pelo caminho da imagem de perfil do usuário
           style={styles.profileImage}
         />
       </View>
-
-      {/* Botão para selecionar nova imagem */}
-      <TouchableOpacity onPress={pickImage} style={styles.changeImageButton}>
-        <Text style={styles.changeImageButtonText}>Trocar Imagem de Perfil</Text>
-      </TouchableOpacity>
 
       {/* Informações do usuário */}
       <View style={styles.userInfo}>
@@ -66,17 +63,28 @@ const UsuarioScreen = () => {
         <Text style={styles.userInfoText}>Email: cauaamosouza@gmail.com</Text>
       </View>
 
-      {/* Campo para trocar a senha */}
-      <View style={styles.passwordChangeContainer}>
+      {/* Formulário para alterar senha */}
+      <View style={styles.form}>
+        <Text style={styles.label}>Senha Atual</Text>
         <TextInput
-          style={styles.passwordInput}
-          placeholder="Nova senha"
+          style={styles.input}
           secureTextEntry
-          value={newPassword}
-          onChangeText={setNewPassword}
+          value={senhaAtual}
+          onChangeText={setSenhaAtual}
+          placeholder="Digite sua senha atual"
+          placeholderTextColor="#777"
         />
-        <TouchableOpacity onPress={changePassword} style={styles.changePasswordButton}>
-          <Text style={styles.changePasswordButtonText}>Alterar Senha</Text>
+        <Text style={styles.label}>Nova Senha</Text>
+        <TextInput
+          style={styles.input}
+          secureTextEntry
+          value={novaSenha}
+          onChangeText={setNovaSenha}
+          placeholder="Digite sua nova senha"
+          placeholderTextColor="#777"
+        />
+        <TouchableOpacity onPress={alterarSenha} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Alterar Senha</Text>
         </TouchableOpacity>
       </View>
 
@@ -114,17 +122,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  changeImageButton: {
-    backgroundColor: '#00FFEA',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  changeImageButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-  },
   userInfo: {
     marginVertical: 20,
   },
@@ -133,28 +130,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginVertical: 5,
   },
-  passwordChangeContainer: {
-    marginVertical: 20,
+  form: {
     width: '100%',
+    marginTop: 20,
   },
-  passwordInput: {
-    height: 40,
-    borderColor: '#fff',
-    borderWidth: 1,
-    borderRadius: 5,
+  label: {
+    color: '#00FFEA',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  input: {
+    backgroundColor: '#1c1c1c',
     color: '#fff',
-    paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  changePasswordButton: {
-    backgroundColor: '#00FFEA',
+    fontSize: 16,
     paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#00FFEA',
+  },
+  saveButton: {
+    backgroundColor: '#00FFEA',
+    paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 5,
+    marginTop: 10,
   },
-  changePasswordButtonText: {
+  saveButtonText: {
     color: '#000',
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   backButton: {
     backgroundColor: '#00FFEA',
