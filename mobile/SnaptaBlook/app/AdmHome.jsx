@@ -1,6 +1,6 @@
-// AdmHome.jsx
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, Modal, StyleSheet, SafeAreaView, FlatList, Alert, TextInput } from "react-native";
+import { View, Text, Pressable, ScrollView, StyleSheet, SafeAreaView, FlatList, TextInput } from "react-native";
+import UserModal from "./UserModal";  // Importe o componente UserModal
 
 const AdmHome = () => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -54,45 +54,6 @@ const AdmHome = () => {
     };
 
     // Modal de deleção de usuários
-    const deletarUsuarios = async () => {
-        await allUsers();
-        setModalContent(
-            <SafeAreaView style={styles.modalContent}>
-                <Text style={styles.title}>Deletar Usuário</Text>
-                {loading ? (
-                    <Text style={styles.text}>Carregando...</Text>
-                ) : (
-                    <FlatList
-                        data={usuarios}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item }) => (
-                            <View style={styles.userCard}>
-                                <Text style={styles.text}>Nome: {item.nome}</Text>
-                                <Text style={styles.text}>Email: {item.email}</Text>
-                                <Pressable
-                                    style={styles.deleteButton}
-                                    onPress={() =>
-                                        Alert.alert(
-                                            "Confirmação",
-                                            `Deseja deletar o usuário ${item.nome}?`,
-                                            [
-                                                { text: "Cancelar", style: "cancel" },
-                                                { text: "Deletar", onPress: () => deleteUser(item.id) },
-                                            ]
-                                        )
-                                    }
-                                >
-                                    <Text style={styles.deleteButtonText}>Deletar</Text>
-                                </Pressable>
-                            </View>
-                        )}
-                    />
-                )}
-            </SafeAreaView>
-        );
-        setModalVisible(true);
-    };
-
     const dadosModal = (botao) => {
         switch (botao) {
             case "Todos":
@@ -114,15 +75,13 @@ const AdmHome = () => {
                 );
                 break;
             case "Deletar":
-                
                 setModalContent(
                     <View style={styles.modalContent}>
-                        <Text  style={styles.title}>Deletar Usuário</Text>
+                        <Text style={styles.title}>Deletar Usuário</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Digite o email do usuário"
                             placeholderTextColor="#ccc"
-                            //defaultValue={email}
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
@@ -133,8 +92,6 @@ const AdmHome = () => {
                         </Pressable>
                     </View>
                 );
-
-
                 break;
             default:
                 setModalContent(null);
@@ -145,23 +102,11 @@ const AdmHome = () => {
 
     return (
         <ScrollView style={styles.scrollview}>
-            <Modal
-                visible={modalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <ScrollView style={styles.modal_scrollview}>
-                    <View style={styles.modal_container}>
-                        {modalContent} {/* Certifique-se de que 'modalContent' não esteja sendo recriado desnecessariamente */}
-                        <Pressable style={styles.button} onPress={() => setModalVisible(false)}>
-                            <Text style={styles.buttonText}>Fechar</Text>
-                        </Pressable>
-                    </View>
-                </ScrollView>
-            </Modal>
-
-
+            <UserModal
+                modalVisible={modalVisible}
+                setModalVisible={setModalVisible}
+                modalContent={modalContent}
+            />
             <View style={styles.container}>
                 <Text style={styles.title}>Hub dos Admins</Text>
                 <View style={styles.buttonContainer}>
@@ -171,7 +116,6 @@ const AdmHome = () => {
                     <Pressable style={styles.button} onPress={() => dadosModal("Deletar")}>
                         <Text style={styles.buttonText}>Deletar um Usuário</Text>
                     </Pressable>
-                    
                 </View>
             </View>
         </ScrollView>
