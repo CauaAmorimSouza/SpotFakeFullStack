@@ -4,7 +4,7 @@ import { User } from '../db.js'
 
 const registro = async (req, res) => {
     const { nome, sobrenome, email, senha, dataNascimento } = req.body
-    if (!nome || !sobrenome || !email || !senha || !dataNascimento) { console.log("TEste1")
+    if (!nome || !sobrenome || !email || !senha || !dataNascimento) { 
         res.send('todos os campos devem ser preenchidos');
         return
     }
@@ -16,7 +16,7 @@ const registro = async (req, res) => {
         return
     }
     const senhaCriptografada = bcryptjs.hashSync(senha, 10)
-    const Registrar = await User.create({ nome, sobrenome, email, senha: senhaCriptografada, dataNasc: dataNascimento })
+    const Registrar = await User.create({ nome, sobrenome, email, senha: senhaCriptografada, dataNascimento })
 
     res.send('Usuario registrado com sucesso!')
 }
