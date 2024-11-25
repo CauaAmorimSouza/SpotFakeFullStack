@@ -114,13 +114,15 @@ const AdmHome = () => {
                 );
                 break;
             case "Deletar":
+                
                 setModalContent(
-                    <ScrollView keyboardShouldPersistTaps='handled' style={styles.modalContent}>
-                        <Text style={styles.title}>Deletar Usuário</Text>
+                    <View style={styles.modalContent}>
+                        <Text  style={styles.title}>Deletar Usuário</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Digite o email do usuário"
                             placeholderTextColor="#ccc"
+                            //defaultValue={email}
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
@@ -129,7 +131,7 @@ const AdmHome = () => {
                         <Pressable style={styles.pressable} onPress={deleteUser}>
                             <Text style={styles.pressable_text}>Deletar</Text>
                         </Pressable>
-                    </ScrollView>
+                    </View>
                 );
 
 
@@ -169,6 +171,7 @@ const AdmHome = () => {
                     <Pressable style={styles.button} onPress={() => dadosModal("Deletar")}>
                         <Text style={styles.buttonText}>Deletar um Usuário</Text>
                     </Pressable>
+                    
                 </View>
             </View>
         </ScrollView>
