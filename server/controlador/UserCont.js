@@ -53,10 +53,9 @@ const Deletaruser = async (req, res) => {
 
 // Rota para trocar a senha do usuário
 const trocarSenha = async (req, res) => {
-    const { id } = req.params;
-    const { senhaAtual, novaSenha } = req.body;
+    const { id, senhaAtual, novaSenha } = req.body;
 
-    if (!senhaAtual || !novaSenha) {
+    if (!id || !senhaAtual || !novaSenha) {
         res.status(400).json({ error: "Todos os campos devem ser preenchidos" });
         return;
     }
@@ -82,6 +81,34 @@ const trocarSenha = async (req, res) => {
         console.error("Erro ao atualizar senha:", error);
         res.status(500).json({ error: "Erro ao atualizar senha" });
     }
-};
+}
 
-export { Allusuario, Oneusuario, Deletaruser, trocarSenha };
+const ChangePass = async (req, res) => {
+    const data = req.body;
+    const user = await User.findOne({ where: { email: data.email } });
+    if (!user) {
+        res.send("Usuário não encontrado.")
+        return
+    }
+}
+
+const SaveProfilePic = async (req, res) => {
+    try {
+        const data = req.body
+        const user = await User.findOne({ where: { email: data.email } })
+        if (!user) {
+            return res.send("Usuário não encontrado.")
+        }
+
+        console.log(data.foto)
+        const update = await User.update({ foto: data.foto }, { where: { email: data.email } })
+        res.send('Foto de perfil atualizada com sucesso.')
+    } catch (error) {
+        console.log(error)
+    }
+    
+}
+
+
+
+export { Allusuario, Oneusuario, Deletaruser, trocarSenha, SaveProfilePic, ChangePass };

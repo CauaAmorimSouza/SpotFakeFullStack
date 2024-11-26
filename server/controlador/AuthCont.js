@@ -51,14 +51,17 @@ const login = async (req, res) => {
         "chavecriptografiajwt",
         { expiresIn: 1000 * 60 * 5 }
     )
-
+    
     if(userExiste.email === "admin" && userExiste.email === "admin"){
         res.send('Admin logado com sucesso!')
     }
     else{
         res.send('Usuário Logado com Sucesso!')
     }
-    
+
+     res.json({
+        tokenJWT: token
+    })
 }
 
 export { registro, login }

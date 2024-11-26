@@ -1,178 +1,155 @@
-// app/Usuario.jsx
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useContext, useState, useEffect } from "react";
+import { View, Text, Pressable, Image, TextInput, ScrollView, Alert } from "react-native";
+import { Link } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
+import jwtDecode from 'jwt-decode'; // Certifique-se de que o pacote está instalado
+import { LoginContext } from "../scripts/LoginContext";
 
-const UsuarioScreen = () => {
-  const router = useRouter();
+const Profile = () => {
+    const { foto, setFoto, token, userData, setUserData } = useContext(LoginContext);
 
-  // Estados para senha atual e nova senha
-  const [senhaAtual, setSenhaAtual] = useState('');
-  const [novaSenha, setNovaSenha] = useState('');
+    // Garantir que o token seja válido antes de decodificá-lo
+    const info = token ? jwtDecode(token) : { email: '' };
 
-  const alterarSenha = async () => {
-    if (!senhaAtual || !novaSenha) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
+    const [formData, setFormData] = useState({ foto: '', email: info.email, senha: '' });
 
-    try {
-      const response = await fetch('http://localhost:8000/autenticacao/Login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          senhaAtual,
-          novaSenha,
-        }),
-      });
+    const getUserData = async () => {
+        try {
+            const response = await fetch("http://localhost:8000/autenticacao/user", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
 
-      const data = await response.json(); // Aguarda a resposta do servidor
+            if (response.ok) {
+                const data = await response.json();
+                setUserData(data);
+                setFoto(data.foto || 'https://placeholder.pics/svg/300');
+            } else {
+                console.log("Erro ao obter dados do usuário:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Erro de rede:", error);
+        }
+    };
 
-      console.log('Resposta do servidor:', data);
+    useEffect(() => {
+        getUserData();
+    }, []);
 
-      if (response.ok) {
-        Alert.alert('Sucesso', 'Senha alterada com sucesso.');
-        setSenhaAtual('');
-        setNovaSenha('');
-      } else {
-        Alert.alert('Erro', data.message || 'Não foi possível alterar a senha.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
-    }
-  };
+    const handleImagePickerPress = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Perfil do Usuário</Text>
-      
-      {/* Exemplo de foto de perfil */}
-      <View style={styles.profileImageWrapper}>
-        <Image 
-          source={{ uri: 'https://via.placeholder.com/100' }} // Substitua pelo caminho da imagem de perfil do usuário
-          style={styles.profileImage}
-        />
-      </View>
+        if (!result.canceled) {
+            setFoto(result.assets[0].uri);
+            handleSendImage(result.assets[0].uri);
+        }
+    };
 
-      {/* Informações do usuário */}
-      <View style={styles.userInfo}>
-        <Text style={styles.userInfoText}>Nome: Cauã Souza</Text>
-        <Text style={styles.userInfoText}>Email: cauaamosouza@gmail.com</Text>
-      </View>
+    const handleSendImage = async (imageUri) => {
+        try {
+            const data = {
+                file: imageUri,
+                upload_preset: "ml_default",
+            };
+            const res = await fetch('https://api.cloudinary.com/v1_1/dsoehv79q/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
 
-      {/* Formulário para alterar senha */}
-      <View style={styles.form}>
-        <Text style={styles.label}>Senha Atual</Text>
-        <TextInput
-          style={styles.input}
-          secureTextEntry
-          value={senhaAtual}
-          onChangeText={setSenhaAtual}
-          placeholder="Digite sua senha atual"
-          placeholderTextColor="#777"
-        />
-        <Text style={styles.label}>Nova Senha</Text>
-        <TextInput
-          style={styles.input}
-          secureTextEntry
-          value={novaSenha}
-          onChangeText={setNovaSenha}
-          placeholder="Digite sua nova senha"
-          placeholderTextColor="#777"
-        />
-        <TouchableOpacity onPress={alterarSenha} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Alterar Senha</Text>
-        </TouchableOpacity>
-      </View>
+            if (res.ok) {
+                const result = await res.json();
+                setFormData({ ...formData, foto: result.url });
+                updatePic(result.url);
+            } else {
+                console.log("Erro ao enviar imagem:", res.statusText);
+            }
+        } catch (error) {
+            console.error("Erro de rede:", error);
+        }
+    };
 
-      {/* Botão para voltar */}
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>Voltar</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    const updatePic = async (fotoUrl) => {
+        try {
+            const response = await fetch("http://localhost:8000/usuarios/mudar_foto", {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ...formData, foto: fotoUrl }),
+            });
+
+            const message = await response.text();
+            if (response.ok) {
+                Alert.alert("Sucesso", message);
+            } else {
+                console.log("Erro ao atualizar foto:", message);
+            }
+        } catch (error) {
+            console.error("Erro de rede:", error);
+        }
+    };
+
+    const changePass = async () => {
+        try {
+            const response = await fetch("http://localhost:8000/pesquisa/mudar_senha", {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const message = await response.text();
+            if (response.ok) {
+                Alert.alert("Sucesso", message);
+            } else {
+                console.log("Erro ao mudar senha:", message);
+            }
+        } catch (error) {
+            console.error("Erro de rede:", error);
+        }
+    };
+
+    return (
+        <ScrollView>
+            <View>
+                <Pressable onPress={handleImagePickerPress}>
+                    <Text>Foto de Perfil - Clique para Editar</Text>
+                    <Image style={{ width: 100, height: 100 }} source={{ uri: foto }} />
+                </Pressable>
+                <Text>{`Nome Completo: ${userData.nome || ''} ${userData.sobreNome || ''}`}</Text>
+                <Text>{`Status: ${userData.status || ''}`}</Text>
+                <Pressable onPress={() => updatePic(foto)}>
+                    <Text>Salvar Imagem</Text>
+                </Pressable>
+                <TextInput
+                    placeholder="Nova Senha"
+                    value={formData.senha}
+                    onChangeText={(text) => setFormData({ ...formData, senha: text })}
+                    secureTextEntry
+                />
+                <Pressable onPress={changePass}>
+                    <Text>Mudar Senha</Text>
+                </Pressable>
+                <Link href="/Home">
+                    <Pressable>
+                        <Text>Ir para a página principal.</Text>
+                    </Pressable>
+                </Link>
+            </View>
+        </ScrollView>
+    );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    padding: 20,
-    alignItems: 'center',
-  },
-  title: {
-    color: '#00FFEA',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  profileImageWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: '#00FFEA',
-    overflow: 'hidden',
-    marginBottom: 20,
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-  },
-  userInfo: {
-    marginVertical: 20,
-  },
-  userInfoText: {
-    color: '#fff',
-    fontSize: 18,
-    marginVertical: 5,
-  },
-  form: {
-    width: '100%',
-    marginTop: 20,
-  },
-  label: {
-    color: '#00FFEA',
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  input: {
-    backgroundColor: '#1c1c1c',
-    color: '#fff',
-    fontSize: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#00FFEA',
-  },
-  saveButton: {
-    backgroundColor: '#00FFEA',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  saveButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  backButton: {
-    backgroundColor: '#00FFEA',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  backButtonText: {
-    color: '#000',
-    fontWeight: 'bold',
-  },
-});
-
-export default UsuarioScreen;
+export default Profile;
